@@ -5,6 +5,8 @@
 //  Mike Ghizzoni     03.31.2011
 //  Mike Ghizzoni     07.12.2012     Converted output to textarea and 
 //                                   escaped all &,<,>,", and ' characters
+//  Chris Borowicz    08.18.2016     Added support for 9.40 SP3, 10.0 SP5, 
+//                                   11.0 SP5 and 11.0 SP6
 //============================================================================
 
 // Function to recursively replace all escape characters that would cause the AML to fail
@@ -59,7 +61,15 @@ escapeChars(resPTI.node);
 var resPT = resPTI.applyStylesheet(myXslSS, "text");
 
 // Remove SOAP envelope
-resPT = resPT.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><Result>","");
+resPT = resPT.replace(resPT.substring(resPT.indexOf("<SOAP-ENV"),
+                                      resPT.indexOf("<SOAP-ENV:Body><Result>") + "<SOAP-ENV:Body><Result>".length
+                                      ),
+                      "");
+
+//remove XML tag
+resPT = resPT.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?>", "");
+
+//remove soap tags
 resPT = resPT.replace("</Result></SOAP-ENV:Body></SOAP-ENV:Envelope>","");
 
 //+++ Code excerpt from method onCreateNewProject to get root WBS Element and all Relationships
@@ -233,7 +243,7 @@ finalRes = finalRes + resPT.replace(wbsId,wbsXml) + "</AML></textarea>";
 
 // Add action="add" to all Items for applying through Nash.aspx
 finalRes = finalRes.replace(/typeId=/g,"action=\"add\" typeId=");
-
+finalRes = finalRes.replace(/<\?xml version=\"1\.0\"\?>/g, "");
 // Return the final formatted AML string
 return finalRes;]]></method_code>
   <method_type>JavaScript</method_type>
