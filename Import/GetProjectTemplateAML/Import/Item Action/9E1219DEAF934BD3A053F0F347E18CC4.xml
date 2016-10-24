@@ -1,0 +1,22 @@
+<AML>
+ <Item type="Item Action" id="9E1219DEAF934BD3A053F0F347E18CC4" action="add">
+  <classification>/*</classification>
+  <related_id keyed_name="GetProjectTemplateAML" type="Action">
+   <Item type="Action" id="62442CAFE6B348FDA026774C37675950" action="add">
+    <classification>/*</classification>
+    <item_query>___is_new___</item_query>
+    <location>client</location>
+    <method keyed_name="GetProjectTemplateAML" type="Method">
+     <Item type="Method" action="get" select="id">
+      <name>GetProjectTemplateAML</name>
+     </Item>
+    </method>
+    <name>GetProjectTemplateAML</name>
+    <target>window</target>
+    <type>item</type>
+   </Item>
+  </related_id>
+  <sort_order>256</sort_order>
+  <source_id keyed_name="Project Template" type="ItemType" name="Project Template">B47D2E8E30484C66A4E9449E394F9456</source_id>
+ </Item>
+</AML>

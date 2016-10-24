@@ -1,0 +1,196 @@
+<AML>
+ <Item type="Method" id="6E3E80933BA24F23ABB8BED0ECBC96B9" action="add">
+  <classification>/*</classification>
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[//  Generate a project template in AML for applying in Nash
+//  Mike Ghizzoni     03.31.2011
+//============================================================================
+
+var myInn = this.getInnovator();
+
+var finalRes = "<AML>";
+// Get ID of the root WBS Element
+var wbsId = this.getProperty("wbs_id");
+
+// AML to apply to get Project Template AML
+var AMLtoApply1 = "<AML>" +
+"  <Item type=\"Project Template\" select=\"name,description,wbs_id\" action=\"get\" where=\"project_template.wbs_id='" + wbsId + "'\"/>" +
+"</AML>";
+// resPT contains only the AML for the Project Template
+var resPT = myInn.applyAML(AMLtoApply1).node.xml;
+
+//+++ Code excerpt from method onCreateNewProject to get root WBS Element and all Relationships
+// Changes to convert this code to get the Template instead of adding a Project are noted in the comments as "MODIFIED:"
+
+var a = top.aras;
+var xmlFileBase = top.aras.getScriptsURL() + "../Solutions/Project/xml/";
+var tmpQry = a.createXMLDocument();
+tmpQry.load(xmlFileBase + "queryToAddProject.xml");
+if (tmpQry.parseError.errorCode !== 0)
+{
+  var myError = tmpQry.parseError;
+  a.AlertError(a.getResource("project", "item_choice.have_error", myError.reason));
+}
+
+var qry = new top.Item();
+qry.loadAML(tmpQry.xml);
+qry.setID(wbsId);
+
+//MODIFIED: Added to prevent multiple adds per Activity2
+qry.getItemsByXPath("Relationships/Item/related_id/Item/Relationships/Item[@type='Predecessor']").setAttribute("related_expand","0");
+
+var qryResults = qry.apply();
+if (!qryResults.isError()){
+  var outItem = qryResults.getItemByIndex(0).node;
+}
+if(!outItem)
+{
+  a.AlertError(a.getResource("project", "pr_methods.no_wbs_with_id", wbsId));
+  return;
+}
+
+  var nwItem = a.newItem("WBS Element");
+//+++ MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+//  a.addItemToInnovatorItemsCache(nwItem);
+//--- MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+  a.setItemProperty(nwItem, "name", a.getItemProperty(outItem,"name"));
+  a.setItemProperty(nwItem, "is_top", "1");
+  a.setItemProperty(nwItem, "deliv_required", a.getItemProperty(outItem,"deliv_required"));
+  a.setItemProperty(nwItem,"keyed_name", a.getItemProperty(outItem,"name"));
+  nwItem.setAttribute("doGetItem", "0");  // Added to improve performance
+    
+  var WBSElRelTypeID = a.getRelationshipTypeId("Sub WBS");
+  var WBSActRelTypeID = a.getRelationshipTypeId("WBS Activity2");
+  var PredRelTypeID = a.getRelationshipTypeId("Predecessor");
+  var Act2AsRelTypeID = a.getRelationshipTypeId("Activity2 Assignment");
+  var Act2TaskRelTypeID = a.getRelationshipTypeId("Activity2 Task");
+  var Act2ProjTeamRelTypeID = a.getRelationshipTypeId("Project Team");
+  
+  var oldAndNewID = new Array;
+  oldAndNewID[wbsId] = nwItem.getAttribute("id");
+
+  getAllTree(outItem,nwItem);
+
+// functions that needed in this method
+function getAllTree(node,nwNode)
+{
+  var tmpItem;
+  var allWBSes = node.selectNodes("Relationships/Item[@type='Sub WBS']/related_id/Item[@type='WBS Element']");
+  for (var i=0;i<allWBSes.length;i++)
+  {
+    thisNode = allWBSes[i];
+    tmpItem = a.newItem("WBS Element");
+    //+++ MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+//    a.addItemToInnovatorItemsCache(tmpItem);
+    //--- MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+    a.setItemProperty(tmpItem,"name",a.getItemProperty(thisNode,"name"));
+    a.setItemProperty(tmpItem,"is_top","0");
+    a.setItemProperty(tmpItem,"deliv_required",a.getItemProperty(thisNode,"deliv_required"));
+    a.setItemProperty(tmpItem,"wbs_index",a.getItemProperty(thisNode,"wbs_index"));
+    a.setItemProperty(tmpItem,"deliv_type",a.getItemProperty(thisNode,"deliv_type"));
+    a.setItemProperty(tmpItem,"keyed_name",a.getItemProperty(thisNode,"keyed_name"));
+    var newRelship = a.newRelationship(WBSElRelTypeID,nwNode,false,null,tmpItem,"WBS Element", false, true, "Sub WBS");
+    setSortOrder(newRelship, thisNode.selectSingleNode("../.."));
+    oldAndNewID[thisNode.getAttribute("id")] = tmpItem.getAttribute("id");
+
+  }
+
+  var allActs =  node.selectNodes("Relationships/Item[@type='WBS Activity2']/related_id/Item[@type='Activity2']");
+  for (i=0;i<allActs.length;i++)
+  {
+    thisNode = allActs[i];
+    tmpItem = a.newItem("Activity2");
+    //+++ MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+//    a.addItemToInnovatorItemsCache(tmpItem);
+    //--- MODIFIED: Preventing adding of Items as originally designed in onCreateNewProject
+    a.setItemProperty(tmpItem,"is_milestone",a.getItemProperty(thisNode,"is_milestone"));
+    a.setItemProperty(tmpItem,"expected_duration",a.getItemProperty(thisNode,"expected_duration"));
+    a.setItemProperty(tmpItem,"work_earned",a.getItemProperty(thisNode,"work_earned"));
+    a.setItemProperty(tmpItem,"work_est",a.getItemProperty(thisNode,"work_est"));
+    a.setItemProperty(tmpItem,"name",a.getItemProperty(thisNode,"name"));
+    a.setItemProperty(tmpItem,"is_required",a.getItemProperty(thisNode,"is_required"));
+    a.setItemProperty(tmpItem,"deliv_required",a.getItemProperty(thisNode,"deliv_required"));
+    a.setItemProperty(tmpItem,"deliv_type",a.getItemProperty(thisNode,"deliv_type"));
+    a.setItemProperty(tmpItem,"keyed_name",a.getItemProperty(thisNode,"keyed_name"));
+    a.setItemProperty(tmpItem,"lead_role",a.getItemProperty(thisNode,"lead_role"));
+    a.setItemProperty(tmpItem,"state","Pending");
+    newRelship = a.newRelationship(WBSActRelTypeID,nwNode,false,null,tmpItem,"Activity2",false,true,"WBS Activity2");
+    setSortOrder(newRelship, thisNode.selectSingleNode("../.."));
+    oldAndNewID[thisNode.getAttribute("id")] = tmpItem.getAttribute("id");
+    
+    //set all Activity2 Assignment and Activity2 Task
+    allAct2As = thisNode.selectNodes("Relationships/Item[@type='Activity2 Assignment']");
+    for (var j=0;j<allAct2As.length;j++)
+    {
+      propVal = a.getItemProperty(allAct2As[j],"role");
+      if (propVal)
+      {
+        newRel = a.newRelationship(Act2AsRelTypeID,tmpItem,false,null,null,"Activity2",false,true);
+        a.setItemProperty(newRel,"role",propVal);
+        a.setItemProperty(newRel,"state","Pending");
+        setSortOrder(newRel, allAct2As[j]);
+      }
+    }
+    allAct2Task = thisNode.selectNodes("Relationships/Item[@type='Activity2 Task']");
+    for (j=0;j<allAct2Task.length;j++)
+    {
+      descrVal = a.getItemProperty(allAct2Task[j],"description");
+      isrqdVal = a.getItemProperty(allAct2Task[j],"is_required");
+      newRel = a.newRelationship(Act2TaskRelTypeID,tmpItem,false,null,null,"Activity2",false,true);
+      a.setItemProperty(newRel,"description",descrVal);
+      a.setItemProperty(newRel,"is_required",isrqdVal);
+      setSortOrder(newRel, allAct2Task[j]);
+    }
+  }
+  var wbsId2 = wbsId;
+  for (i=0;i<allWBSes.length;i++)
+  {
+    qry = new top.Item();
+    qry.loadAML(tmpQry.xml);
+    wbsId2 = allWBSes[i].getAttribute("id");
+    qry.setID(wbsId2);
+    
+    //MODIFIED: Added to prevent multiple adds per Activity2
+    qry.getItemsByXPath("Relationships/Item/related_id/Item/Relationships/Item[@type='Predecessor']").setAttribute("related_expand","0");
+    
+    qryResults = qry.apply();
+    if (!qryResults.isError()){
+      tmpRes = qryResults.getItemByIndex(0).node;
+    }
+    if(!tmpRes) { a.AlertError(a.getResource("project", "pr_methods.no_wbs_with_id", wbsId2)); return; }
+    allWBSes[i].parentNode.replaceChild(tmpRes,allWBSes[i]);
+    getAllTree(tmpRes,nwNode.selectSingleNode("Relationships/Item[@type='Sub WBS']["+(i+1)+"]/related_id/Item"));
+  }
+  
+  function setSortOrder(newRelship, patternRelship)
+  {
+    var sorder = a.getItemProperty(patternRelship, "sort_order");
+    if (!sorder){
+      sorder = "128";
+    }
+    a.setItemProperty(newRelship, "sort_order", sorder);
+  }
+}
+
+this.node = a.updateInCache(this.node).item;
+
+//--- Code excerpt from method onCreateNewProject to get root WBS Element and all Relationships
+
+
+var wbsXml = outItem.xml;
+
+finalRes = finalRes + resPT.replace(wbsId,wbsXml) + "</AML>";
+
+// Replace all '<' and '>' characters with escape characters for display in result window
+finalRes = finalRes.replace(/</g,"&lt");
+finalRes = finalRes.replace(/>/g,"&gt");
+
+// Add action="add" to all Items for applying through Nash.aspx
+finalRes = finalRes.replace(/typeId=/g,"action=\"add\" typeId=");
+
+// Return the final formatted AML string
+return finalRes;]]></method_code>
+  <method_type>JavaScript</method_type>
+  <name>GetProjectTemplateAML</name>
+ </Item>
+</AML>
