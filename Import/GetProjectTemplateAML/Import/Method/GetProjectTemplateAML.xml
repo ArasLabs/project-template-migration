@@ -21,9 +21,9 @@ function escapeChars(currItem)
     }
     else
     {
-      currChild.text = currChild.text.replace(/&/g,"&amp;amp;");
-      currChild.text = currChild.text.replace(/</g,"&amp;lt;");
-      currChild.text = currChild.text.replace(/>/g,"&amp;gt;");
+      currChild.text = currChild.text.replace(/&(?!(amp;))/g,"&amp;");
+      currChild.text = currChild.text.replace(/</g,"&lt;");
+      currChild.text = currChild.text.replace(/>/g,"&gt;");
       currChild.text = currChild.text.replace(/"/g,"&quot;");
       currChild.text = currChild.text.replace(/'/g,"&apos;");
     }
