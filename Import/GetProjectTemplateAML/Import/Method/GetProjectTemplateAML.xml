@@ -1,14 +1,47 @@
-<AML>
+﻿<AML>
  <Item type="Method" id="6E3E80933BA24F23ABB8BED0ECBC96B9" action="add">
-  <classification>/*</classification>
   <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
   <method_code><![CDATA[//  Generate a project template in AML for applying in Nash
 //  Mike Ghizzoni     03.31.2011
+//  Mike Ghizzoni     07.12.2012     Converted output to textarea and 
+//                                   escaped all &,<,>,", and ' characters
 //============================================================================
+
+// Function to recursively replace all escape characters that would cause the AML to fail
+function escapeChars(currItem)
+{
+  // Escape all necessary characters
+  var i=0;
+  for(i=0; i<currItem.childNodes.length; i++)
+  {
+    var currChild = currItem.childNodes[i];
+    if(currChild.childNodes.length > 0)
+    {
+      escapeChars(currChild);
+    }
+    else
+    {
+      currChild.text = currChild.text.replace(/&/g,"&amp;amp;");
+      currChild.text = currChild.text.replace(/</g,"&amp;lt;");
+      currChild.text = currChild.text.replace(/>/g,"&amp;gt;");
+      currChild.text = currChild.text.replace(/"/g,"&quot;");
+      currChild.text = currChild.text.replace(/'/g,"&apos;");
+    }
+  }
+}
 
 var myInn = this.getInnovator();
 
-var finalRes = "<AML>";
+var myXslSS = "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"+
+"  <xsl:template match=\"node()|@*\">"+
+"    <xsl:copy>"+
+"      <xsl:apply-templates select=\"node()|@*\"/>"+
+"    </xsl:copy>"+
+"  </xsl:template>"+
+"  <xsl:template match=\"keyed_name|@keyed_name\"/>"+
+"</xsl:stylesheet>";
+
+var finalRes = "<textarea style=\"width:100%; height:100%;\" readonly=\"readonly\"><AML>";
 // Get ID of the root WBS Element
 var wbsId = this.getProperty("wbs_id");
 
@@ -17,7 +50,17 @@ var AMLtoApply1 = "<AML>" +
 "  <Item type=\"Project Template\" select=\"name,description,wbs_id\" action=\"get\" where=\"project_template.wbs_id='" + wbsId + "'\"/>" +
 "</AML>";
 // resPT contains only the AML for the Project Template
-var resPT = myInn.applyAML(AMLtoApply1).node.xml;
+var resPTI = myInn.applyAML(AMLtoApply1);
+
+// Escape all necessary characters
+escapeChars(resPTI.node);
+
+// remove all instances of "keyed_name"
+var resPT = resPTI.applyStylesheet(myXslSS, "text");
+
+// Remove SOAP envelope
+resPT = resPT.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><Result>","");
+resPT = resPT.replace("</Result></SOAP-ENV:Body></SOAP-ENV:Envelope>","");
 
 //+++ Code excerpt from method onCreateNewProject to get root WBS Element and all Relationships
 // Changes to convert this code to get the Template instead of adding a Project are noted in the comments as "MODIFIED:"
@@ -176,14 +219,17 @@ this.node = a.updateInCache(this.node).item;
 
 //--- Code excerpt from method onCreateNewProject to get root WBS Element and all Relationships
 
+// Escape all necessary characters
+escapeChars(outItem);
 
-var wbsXml = outItem.xml;
+// remove all instances of "keyed_name"
+var outItemI = myInn.newItem();
+outItemI.loadAML(outItem.xml);
+wbsXml = outItemI.applyStylesheet(myXslSS, "text");
+// Remove top ?xml tag
+wbsXml = wbsXml.replace("<?xml version=\"1.0\" encoding=\"utf-8\"?>","");
 
-finalRes = finalRes + resPT.replace(wbsId,wbsXml) + "</AML>";
-
-// Replace all '<' and '>' characters with escape characters for display in result window
-finalRes = finalRes.replace(/</g,"&lt");
-finalRes = finalRes.replace(/>/g,"&gt");
+finalRes = finalRes + resPT.replace(wbsId,wbsXml) + "</AML></textarea>";
 
 // Add action="add" to all Items for applying through Nash.aspx
 finalRes = finalRes.replace(/typeId=/g,"action=\"add\" typeId=");
