@@ -2,26 +2,27 @@
 
 This solution will add the Action, "GetProjectTemplateAML", to the Project Template ItemType. This action can be used to migrate a Project Template item from one database to another.
 
-## Project Details
+## History
 
-See [TESTSTATUS file](./TESTSTATUS.md) for latest testing information.
+Release | Notes
+--------|--------
+[v3.1](https://github.com/ArasLabs/project-template-migration/releases/tag/v3.1) | Confirmed for 11.0 SP15
+[v3.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v3.0) | Confirmed for 11.0 SP7, 11.0 SP5
+[v2.1](https://github.com/ArasLabs/project-template-migration/releases/tag/v2.1) | Bug fixes
+[v2.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v2.0) | Confirmed for 10.0 SP5
+[v1.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v1.0) | Initial Release
 
-#### Built Using:
-Aras 11.0 SP7
+#### Supported Aras Versions
 
-#### Versions Tested:
-Aras 11.0 SP7, Aras 11.0 SP5 (open release)
+Project | Aras
+--------|------
+[v3.1](https://github.com/ArasLabs/project-template-migration/releases/tag/v3.1) | 11.0 SP15
+[v3.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v3.0) | 11.0 SP7, 11.0 SP5
+[v2.1](https://github.com/ArasLabs/project-template-migration/releases/tag/v2.1) | 10.0 SP5
+[v2.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v2.0) | 10.0 SP5
+[v1.0](https://github.com/ArasLabs/project-template-migration/releases/tag/v1.0) | 9.4 SP3
 
-#### Browsers Tested:
-Internet Explorer 11, Firefox 38 ESR, Chrome
-
-> Though built and tested using Aras 11.0 SP7, this project should function in older releases of Aras 11.0 and Aras 10.0.
-
-## How It Works
-
-Upon running the GetProjectTemplateAML action against a Template, a window will open containing the template's AML. This AML can be applied to another Database through the Nash.aspx page to add the Project Template to that Database.
-
-See the project's Documentation subdirectory for more information.
+_While this project was built and tested using 11.0 SP15, it should work with any service pack of 11.0._
 
 ## Installation
 
@@ -78,6 +79,8 @@ For more information on contributing to this project, another Aras Labs project,
 Original Aras community project written by Aras Corporation Support.
 
 Project rewritten for Aras 11.0 by Chris Borowicz for Aras Support.
+
+Pojrect updated for Aras Innovator 11.0 SP15 by Chris Gillis for Aras Labs.
 
 Documented and published by Eli Donahue for Aras Labs. @elijdonahue
 

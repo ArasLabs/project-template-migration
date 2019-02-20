@@ -5,13 +5,13 @@
     <item_query>___is_new___</item_query>
     <location>client</location>
     <method keyed_name="GetProjectTemplateAML" type="Method">
-     <Item type="Method" action="get" select="config_id">
+     <Item type="Method" action="get" select="id">
       <name>GetProjectTemplateAML</name>
      </Item>
     </method>
-    <name>GetProjectTemplateAML</name>
     <target>window</target>
     <type>item</type>
+    <name>GetProjectTemplateAML</name>
    </Item>
   </related_id>
   <sort_order>256</sort_order>

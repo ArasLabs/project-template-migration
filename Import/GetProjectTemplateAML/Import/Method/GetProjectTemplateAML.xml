@@ -23,11 +23,11 @@ function escapeChars(currItem)
     }
     else
     {
-      currChild.text = currChild.text.replace(/&(?!(amp;))/g,"&amp;");
-      currChild.text = currChild.text.replace(/</g,"&lt;");
-      currChild.text = currChild.text.replace(/>/g,"&gt;");
-      currChild.text = currChild.text.replace(/"/g,"&quot;");
-      currChild.text = currChild.text.replace(/'/g,"&apos;");
+      currChild.textContent = currChild.textContent.replace(/&(?!(amp;))/g,"&amp;");
+      currChild.textContent = currChild.textContent.replace(/</g,"&lt;");
+      currChild.textContent = currChild.textContent.replace(/>/g,"&gt;");
+      currChild.textContent = currChild.textContent.replace(/"/g,"&quot;");
+      currChild.textContent = currChild.textContent.replace(/'/g,"&apos;");
     }
   }
 }
@@ -91,7 +91,8 @@ qry.setID(wbsId);
 
 //MODIFIED: Added to prevent multiple adds per Activity2
 qry.getItemsByXPath("Relationships/Item/related_id/Item/Relationships/Item[@type='Predecessor']").setAttribute("related_expand","0");
-
+var act2 = qry.getItemsByXPath("Relationships/Item/related_id/Item[@type='Activity2']");
+act2.setAttribute("select", act2.getAttribute("select") + ",description");
 var qryResults = qry.apply();
 if (!qryResults.isError()){
   var outItem = qryResults.getItemByIndex(0).node;
@@ -166,6 +167,7 @@ function getAllTree(node,nwNode)
     a.setItemProperty(tmpItem,"deliv_type",a.getItemProperty(thisNode,"deliv_type"));
     a.setItemProperty(tmpItem,"keyed_name",a.getItemProperty(thisNode,"keyed_name"));
     a.setItemProperty(tmpItem,"lead_role",a.getItemProperty(thisNode,"lead_role"));
+    a.setItemProperty(tmpItem,"description",a.getItemProperty(thisNode,"description"));
     a.setItemProperty(tmpItem,"state","Pending");
     newRelship = a.newRelationship(WBSActRelTypeID,nwNode,false,null,tmpItem,"Activity2",false,true,"WBS Activity2");
     setSortOrder(newRelship, thisNode.selectSingleNode("../.."));
@@ -205,7 +207,8 @@ function getAllTree(node,nwNode)
     
     //MODIFIED: Added to prevent multiple adds per Activity2
     qry.getItemsByXPath("Relationships/Item/related_id/Item/Relationships/Item[@type='Predecessor']").setAttribute("related_expand","0");
-    
+    var act2 = qry.getItemsByXPath("Relationships/Item/related_id/Item[@type='Activity2']");
+    act2.setAttribute("select", act2.getAttribute("select") + ",description");
     qryResults = qry.apply();
     if (!qryResults.isError()){
       tmpRes = qryResults.getItemByIndex(0).node;
